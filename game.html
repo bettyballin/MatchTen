@@ -14,31 +14,32 @@
         background-color: darkslategrey;
         color: white;
         display: block;
-        margin-left: auto;
+        margin-left: 10%;
         margin-right: auto;
-        width: 50%;
       }
       #field {
-        max-width: 550px;
+        width: 380px;
         height: 600px;
-        margin-top: 80px;
+        margin-top: 20px;
         overflow-x: auto;
         font-family:sans-serif;
-        padding:10px;
-        -moz-transform: scale(1.3);
       }
-      #field button .invisible{
-        margin: 2px;
-        background: transparent !important;
-        border: none !important;
-        color: transparent !important;
+      #field button.selected {
+        border: solid black 1px !important;
+      }
+      #field button.highlight {
+        background-color: lightcoral !important;
       }
       #field button{
-        margin: 2px;
+        margin: 1.5px;
         animation: shift 1s;
+        font: inherit;        
+        line-height: 1.5;
+        background-color: white;
       }
-      .highlight {
-        border: solid 2px red;
+      #field button.invisible{
+        background: transparent !important;
+        color: transparent !important;
       }
       @keyframes shift {
           from { transform: translateY(-300px) }
@@ -48,34 +49,15 @@
   </head>
 
   <body>
-    <h1>Match Ten</h1>
-    <div class="container">
-      <br><br>
-      <div class="row">
-        <div class="col-md-1" style="margin-right:100px">
-          <div class="row">
-            <button class="btn btn-success" title="Hinzufügen" onclick="addRow()"> +</button>
-          </div>
-          <br>
-          <div class="row">
-            <button class="btn btn-danger" title="Hinweis" onclick="help()"> ?</button>
-          </div>
-          <br>
-          <div class="row">
-            <button class="btn btn-primary" title="Rückgängig" onclick="goback()">	&#x21A9; </button>
-          </div>
-          <br><br><br>
-          <div class="row">
-            <button class="btn btn-primary" title="Neu laden" onclick="location.reload()"> &#x21BA; </button>
-          </div>
-        </div>
-
-        <div id="col-md-11">
-          <div id="field"></div>
-        </div>
-      
-      </div>
+    <div style="vertical-align: middle; max-width: 500px">
+      <h1>Match Ten</h1>
+      <button class="btn btn-primary" title="Neu laden" onclick="location.reload()"> &#x21BA; </button>
+      <button class="btn btn-success" title="Hinzufügen" onclick="addRow()"> +</button>
+      <button class="btn btn-primary" title="Rückgängig" onclick="goback()">	&#x21A9; </button>
+      <button class="btn btn-danger" title="Hinweis" onclick="help()"> ?</button>
+      <br>
     </div>
+    <div id="field"></div>
     <br>
     <h3 style="display: none;">Leider kein Match möglich - Gib auf oder füge eine neue Reihe hinzu!</h3>
 
@@ -90,7 +72,7 @@
       window.onload = function () {
         for (var i = 0; i < 30; i++) {
           var newInput = document.createElement("button");
-          newInput.classList = "match btn btn-lg btn-light";
+          newInput.classList = "match btn btn-light";
           newInput.id = ""+i;
           newInput.textContent = Math.floor(Math.random() * 9 + 1);
           newInput.onclick = function (event) {
@@ -114,6 +96,7 @@
       }
 
       function help(){
+        $(".highlight").removeClass("highlight");
         var found = false;
         var pos1 = -1;
         var pos2 = -1;
@@ -128,89 +111,41 @@
           }
         }
         
-        var last = $($("button .match").last()[0]).attr("id");
-        var start = true;
-        console.log(buttons.length)
-        for(var i=0; i < buttons.length && values[i] != -1 && !found; i++){
-          for(var j=1; j < buttons.length && j != i && values[j] != -1 && !found; j++){
-            console.log(i + "," + "j: "+values[i] + "," + values[j])
-            if(start && (values[i] == values[j] || values[i]+values[j] == 10)){
-              found = true;
-            }else if((j+1==i || j-1==i) && (values[i] == values[j] || values[i]+values[j] == 10)){
-              found = true;
-            } else if(i % 10 == j % 10 && (values[i] == values[j] || values[i]+values[j] == 10)){
-              var x = i < j? i: j;
-              var y = i < j? j: i;
-              while(x < y && x < buttons.length){
-                if(x+10 < y){
-                  if(values[x+10] != -1){
-                    break;
+        var last = $($(".match").last()[0]).attr("id");
+        var start = $($(".match").first()[0]).attr("id");
+        if(values[start] == values[last] || values[start]+values[last] == 10){
+          pos1 = start;
+          pos2 = last;
+          found = true;
+        } else { 
+          for(var i=0; i < buttons.length && !found; i++){
+            if(values[i] != -1){
+              for(var j=i+1; j < buttons.length && !found; j++){
+                console.log("i: "+i + "," + "j: "+values[i] + "," + values[j])
+                if(values[j] != -1 ){
+                  if(values[i] == values[j] || values[i]+values[j] == 10){
+                    found = true;
                   }
-                } else {
-                  found = true;
-                }
-                x += 10;
-              }
-            }
-            if(found){
-              pos1 = i;
-              pos2 = j;
-            }
-          }
-          start = false;
-        }
-        /*
-          for(var j = 1; j<matches.length && !found && matches[i].id != matches[j].id; j++){
-            var s0 = matches[i];
-            var s1 = matches[j];
-            var next = s0.nextSibling;
-            var count = 0;
-            while (
-              next != null && next.classList.contains("invisible") &&
-              count++ < 100
-            ) {
-              next = next.nextSibling;
-            }
-            count = 0;
-            var prev = s0.previousSibling;
-            while (
-              prev != null && prev.classList.contains("invisible") &&
-              count++ < 100
-            ) {
-              prev = prev.previousSibling;
-            }
-            var first = matches.first();
-            var last = matches.last();
-            var v0 = parseInt(s0.id, 10);
-            var v1 = parseInt(s1.id, 10);
-            var isNext = false;
-            /*if ((v1 - v0) % 10 == 0) {
-              if (v0 == v1 + 10 || v0 == v1 - 10) {
-                isNext = true;
-              } else {
-                isNext = true;
-                var matches = $(".match");
-                var abs = Math.abs(v0 - v1) % 10;
-                for (var j = 0; j < abs; j++) {
-                  console.log("if matches at " + j*10 + " true, no match");
-                  if (matches[j * 10]) {
-                    isNext = false;
-                  }
+                  break;
                 }
               }
-            }
-            if ( (next != null && s1.id == next.id) || (prev != null && s1.id == prev.id) || isNext ||
-              (s1.id == first.id && s0.id == last.id) || (s0.id == first.id && s1.id == last.id)) {
-              if (parseInt(s0.textContent, 10) + parseInt(s1.textContent, 10) == 10 ||
-                  parseInt(s0.textContent, 10) == parseInt(s1.textContent, 10)) {
-                pos1 = s0.id;
-                pos2 = s1.id;
-                found = true;
-                break;
+              for(var k=i+10; k > i && k < buttons.length && !found; k++){
+                if(values[k] != -1 && k % 10 == i % 10){
+                  if(values[i] == values[k] || values[i]+values[k] == 10){
+                    found = true;
+                    j = k;
+                  }
+                  break;
+                }
+              }
+              if(found){
+                  pos1 = i;
+                  pos2 = j;
+                  break;
               }
             }
           }
-        }  */        
+        }  
         if(found){
           $($("#field button")[pos1]).addClass("highlight");
           $($("#field button")[pos2]).addClass("highlight");
@@ -227,7 +162,7 @@
         var iterations = matches.length;
         for (i = 0; i < iterations; i++) {
           var newInput = document.createElement("button");
-          newInput.classList = "match btn btn-lg btn-light";
+          newInput.classList = "match btn btn-light";
           newInput.id = ""+$("#field button").length;
           newInput.textContent = matches[i].textContent;
           newInput.onclick = function (event) {
@@ -240,7 +175,7 @@
           var newInput = document.createElement("button");
           newInput.id = ""+$("#field button").length;
           newInput.textContent = "0"
-          newInput.classList = "invisible btn btn-lg btn-light";
+          newInput.classList = "invisible btn btn-light";
           $("#field").append(newInput);
           console.log("added 1 button")
         }
@@ -255,6 +190,7 @@
         }
         var selected = $(".selected");
         if (selected.length > 1) {
+          $(".highlight").removeClass("highlight");
           var s0 = selected[0];
           var s1 = selected[1];
           $(".selected").each(function(){
@@ -302,8 +238,8 @@
                 parseInt(s0.textContent, 10) == parseInt(s1.textContent, 10)) {
               hist.shift();
               hist.push($("#field").clone());
-              s0.classList="btn btn-light btn-lg invisible";
-              s1.classList="btn btn-light btn-lg invisible";
+              s0.classList="btn btn-light invisible";
+              s1.classList="btn btn-light invisible";
               removed += 2;
             }
           }
